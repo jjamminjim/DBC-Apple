@@ -162,7 +162,7 @@ public func ensureFailure(_ message: @autoclosure () -> String, intensity: Int =
 	AssertionSupport.performDebugAssertionFailure("ensure", message: message, intensity: intensity, file: file, line: line, debugAssertFailure: Assertions.assertionFailure)
 }
 
-// MARK: - Runtime asssertions, introduced by the keyword check
+// MARK: - Runtime assertions, introduced by the keyword check
 /// Runtime checks express/assert the expected values of (computed) variables 
 /// and their relationships within the routine.
 

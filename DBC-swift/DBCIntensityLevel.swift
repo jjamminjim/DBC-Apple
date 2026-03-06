@@ -19,7 +19,7 @@ import Foundation
 ///
 /// `dbcIntensityLevel` defaults to zero.
 ///
-/// Setting `dbcIntensityLevel` to a value less then zero effectively disables assertions/messaging.
+/// Setting `dbcIntensityLevel` to a value less than zero effectively disables assertions/messaging.
 public var dbcIntensityLevel: Int {
 	get { DBCConfigurationStorage.dbcIntensityLevel }
 	set { DBCConfigurationStorage.dbcIntensityLevel = newValue }

@@ -110,6 +110,82 @@ class SwiftDBCTests:  XCTestCase {
 			XCTAssertEqual(logger.entries.count, 0)
 		}
 	}
+
+	func testSuppressedCheckAndEnsureRemainLazyInReleaseBuilds() {
+		dbcIntensityLevel = 0
+
+		var checkConditionEvaluations = 0
+		var checkMessageEvaluations = 0
+		var ensureConditionEvaluations = 0
+		var ensureMessageEvaluations = 0
+
+		check(
+			{
+				checkConditionEvaluations += 1
+				return false
+			}(),
+			{
+				checkMessageEvaluations += 1
+				return "check"
+			}(),
+			intensity: 1
+		)
+
+		ensure(
+			{
+				ensureConditionEvaluations += 1
+				return false
+			}(),
+			{
+				ensureMessageEvaluations += 1
+				return "ensure"
+			}(),
+			intensity: 1
+		)
+
+		#if DEBUG
+		XCTAssertEqual(checkConditionEvaluations, 1)
+		XCTAssertEqual(checkMessageEvaluations, 1)
+		XCTAssertEqual(ensureConditionEvaluations, 1)
+		XCTAssertEqual(ensureMessageEvaluations, 1)
+		#else
+		XCTAssertEqual(checkConditionEvaluations, 0)
+		XCTAssertEqual(checkMessageEvaluations, 0)
+		XCTAssertEqual(ensureConditionEvaluations, 0)
+		XCTAssertEqual(ensureMessageEvaluations, 0)
+		#endif
+	}
+
+	func testSuppressedCheckFailureAndEnsureFailureRemainLazyInReleaseBuilds() {
+		dbcIntensityLevel = 0
+
+		var checkFailureMessageEvaluations = 0
+		var ensureFailureMessageEvaluations = 0
+
+		checkFailure(
+			{
+				checkFailureMessageEvaluations += 1
+				return "check failure"
+			}(),
+			intensity: 1
+		)
+
+		ensureFailure(
+			{
+				ensureFailureMessageEvaluations += 1
+				return "ensure failure"
+			}(),
+			intensity: 1
+		)
+
+		#if DEBUG
+		XCTAssertEqual(checkFailureMessageEvaluations, 1)
+		XCTAssertEqual(ensureFailureMessageEvaluations, 1)
+		#else
+		XCTAssertEqual(checkFailureMessageEvaluations, 0)
+		XCTAssertEqual(ensureFailureMessageEvaluations, 0)
+		#endif
+	}
 	
 	func testDBCAll() {
 		guard assertionsAreEnabled() else { return }

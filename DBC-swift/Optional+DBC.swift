@@ -166,7 +166,7 @@ public extension Optional {
     
     func requiredCast<CastType>(to: CastType.Type, message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
 		do {
-			return try assertCast(.require, message: message, file: file, line: line, method: method)
+			return try assertCast(.require, message: message, file: file, line: line, method: method, toType: to)
 		} catch {
 			reportError(error, message: message)
 			throw error
@@ -218,7 +218,7 @@ public extension Optional {
 
     func checkedCast<CastType>(to: CastType.Type, message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
 		do {
-			return try assertCast(.check, message: message, file: file, line: line, method: method)
+			return try assertCast(.check, message: message, file: file, line: line, method: method, toType: to)
 		} catch {
 			reportError(error, message: message)
 			throw error
@@ -259,7 +259,11 @@ private extension Optional {
 
 	func reportError(_ error: Error, message: String?) {
 		let reportedError = (error as NSError).localizedDescription
-		if let message = message {
+		if
+			let message = message,
+			!message.isEmpty,
+			!reportedError.hasSuffix(": \(message)")
+		{
 			inform("\(reportedError) : \(message)")
 		} else {
 			inform(reportedError)
@@ -275,12 +279,7 @@ private extension Optional {
 
 	func assertNonNil(_ assertType: DBCAssertType, message: String?, file: StaticString, line: UInt, method: StaticString) throws -> Wrapped {
 		guard let unwrapped = self else {
-			var msg = " : optional is nil."
-
-			if let message = message, !message.isEmpty {
-				msg = message
-			}
-
+			let msg = (message?.isEmpty == false) ? message! : "optional is nil."
 			let errorMsg = "\(assertType.errorStr) : \(msg)"
 			throw assertType.error(errorMsg, file, method, line)
 		}
@@ -292,7 +291,7 @@ private extension Optional {
 		let value = try self.assertNonNil(assertType, message: message, file: file, line: line, method: method)
 
 		guard let castValue = value as? CastType else {
-			let msg = message ?? " : Failed to cast value (\(String(describing: self))) of type \(type(of: self)) to \(toType.self)."
+			let msg = (message?.isEmpty == false) ? message! : "Failed to cast value (\(String(describing: self))) of type \(type(of: self)) to \(toType.self)."
 			let errorMsg = "\(assertType.errorStr) : \(msg)"
 
 			throw assertType.error(errorMsg, file, method, line)

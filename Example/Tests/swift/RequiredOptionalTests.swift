@@ -17,13 +17,23 @@ import DBCTesting
 import DBC_testing
 #endif
 
+private final class RecordingDBCLogger: DBCLogger {
+	private(set) var entries: [String] = []
+
+	func log(_ message: String, separator: String, terminator: String, file: StaticString, line: UInt) {
+		entries.append(message)
+	}
+}
+
 class RequiredOptionalTests: XCTestCase {
 	override func setUp() {
 		super.setUp()
 		dbcIntensityLevel = 0
+		dbcLogger = DBCDebugPrintLogger()
 	}
 	
 	override func tearDown() {
+		dbcLogger = DBCDebugPrintLogger()
 		super.tearDown()
 	}
 
@@ -152,6 +162,53 @@ class RequiredOptionalTests: XCTestCase {
 				domain: "DBC ERROR CHECK",
 				code: 99991
 			)
+		}
+	}
+
+	func testRequiredThrowsDefaultNilMessageWithoutExtraSeparator() {
+		let nilString: String? = nil
+
+		do {
+			_ = try nilString.required()
+			XCTFail("Expected required() to throw")
+		} catch {
+			assertDBCOptionalError(
+				error,
+				kind: .require,
+				message: "Failed REQUIRE : optional is nil.",
+				domain: "DBC ERROR REQUIRE",
+				code: 99990
+			)
+		}
+	}
+
+	func testRequiredCastThrowsDefaultCastMessageWithoutExtraSeparator() {
+		let ints: [Int]? = [1, 2, 3]
+
+		do {
+			let _: [String] = try ints.requiredCast()
+			XCTFail("Expected requiredCast() to throw")
+		} catch {
+			guard let error = error as? DBCOptionalError else {
+				XCTFail("Unexpected error type: \(error)")
+				return
+			}
+
+			XCTAssertTrue(error.message.hasPrefix("Failed REQUIRE : Failed to cast value"))
+			XCTAssertFalse(error.message.contains(":  :"))
+		}
+	}
+
+	func testRequiredLogsTypedErrorWithoutDuplicatingCustomMessage() {
+		let logger = RecordingDBCLogger()
+		let nilString: String? = nil
+		dbcLogger = logger
+
+		do {
+			_ = try nilString.required("Typed Error")
+			XCTFail("Expected required() to throw")
+		} catch {
+			XCTAssertEqual(logger.entries, ["Failed REQUIRE : Typed Error"])
 		}
 	}
 }

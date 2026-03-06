@@ -26,9 +26,7 @@ import DBC_objc
 	@objc static public var intensityLevel: Int = 0 {
 		didSet {
 			dbcIntensityLevel = intensityLevel
-			#if DEBUG
-			DBC_SetDebugIntensityLevel(intensityLevel);
-			#endif
+			DBC_SetDebugIntensityLevel(intensityLevel)
 		}
 	}
 }

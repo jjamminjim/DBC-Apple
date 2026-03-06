@@ -29,11 +29,19 @@ import DBC_testing
 class SwiftDBCBridgedTests:  XCTestCase {
 	override func setUp() {
 		super.setUp()
-		DBCBridge.intensityLevel = 0;
+		DBCBridge.intensityLevel = 0
 	}
 
 	override func tearDown() {
 		super.tearDown()
+	}
+
+	private func assertionsAreEnabled() -> Bool {
+		#if DEBUG
+		return true
+		#else
+		return false
+		#endif
 	}
 
 	func testBridgedIntensity() {
@@ -58,7 +66,8 @@ class SwiftDBCBridgedTests:  XCTestCase {
 	}
 
 	func testDBCIntense() {
-		let wasIntensity = DBCBridge.intensityLevel;
+		guard assertionsAreEnabled() else { return }
+		let wasIntensity = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		DBCBridge.intensityLevel = 10
@@ -89,7 +98,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(1 == 2, intensity: 15)
 		ensure(1 == 2, intensity: 15)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, intensity: 5)
 		check(testStr != nil, intensity: 5)
 		ensure(testStr != nil, intensity: 5)
@@ -102,7 +111,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(testStr == nil, intensity: 15)
 		ensure(testStr == nil, intensity: 15)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, intensity: 5)
 		check(nilStr == nil, intensity: 5)
 		ensure(nilStr == nil, intensity: 5)
@@ -120,7 +129,8 @@ class SwiftDBCBridgedTests:  XCTestCase {
 	}
 
 	func testDBCIntenseMessage() {
-		let wasIntensity: Int = DBCBridge.intensityLevel;
+		guard assertionsAreEnabled() else { return }
+		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		DBCBridge.intensityLevel = 10
@@ -151,7 +161,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(1 == 2, "Test Message", intensity: 15)
 		ensure(1 == 2, "Test Message", intensity: 15)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message", intensity: 5)
 		check(testStr != nil, "Test Message", intensity: 5)
 		ensure(testStr != nil, "Test Message", intensity: 5)
@@ -164,7 +174,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(testStr == nil, "Test Message", intensity: 15)
 		ensure(testStr == nil, "Test Message", intensity: 15)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, "Test Message", intensity: 5)
 		check(nilStr == nil, "Test Message", intensity: 5)
 		ensure(nilStr == nil, "Test Message", intensity: 5)
@@ -182,7 +192,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 	}
 
 	func testDBCOff() {
-		let wasIntensity: Int = DBCBridge.intensityLevel;
+		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		// Setting `DBCBridge.intensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -207,7 +217,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(1 == 2)
 		ensure(1 == 2)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil)
 		check(testStr != nil)
 		ensure(testStr != nil)
@@ -216,7 +226,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(testStr == nil)
 		ensure(testStr == nil)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr != nil)
 		check(nilStr != nil)
 		ensure(nilStr != nil)
@@ -231,7 +241,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 
 
 	func testDBCMessageOff() {
-		let wasIntensity: Int = DBCBridge.intensityLevel;
+		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		// Setting `DBCBridge.intensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -254,7 +264,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(1 == 2, "Test Message")
 		ensure(1 == 2, "Test Message")
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message")
 		check(testStr != nil, "Test Message")
 		ensure(testStr != nil, "Test Message")
@@ -263,7 +273,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(testStr == nil, "Test Message")
 		ensure(testStr == nil, "Test Message")
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr != nil, "Test Message")
 		check(nilStr != nil, "Test Message")
 		ensure(nilStr != nil, "Test Message")
@@ -277,7 +287,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 	}
 
 	func testDBCIntenseOff() {
-		let wasIntensity: Int = DBCBridge.intensityLevel;
+		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		// Setting `DBCBridge.intensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -308,7 +318,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(1 == 2, intensity: 15)
 		ensure(1 == 2, intensity: 15)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, intensity: 5)
 		check(testStr != nil, intensity: 5)
 		ensure(testStr != nil, intensity: 5)
@@ -321,7 +331,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(testStr == nil, intensity: 15)
 		ensure(testStr == nil, intensity: 15)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, intensity: 5)
 		check(nilStr == nil, intensity: 5)
 		ensure(nilStr == nil, intensity: 5)
@@ -339,7 +349,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 	}
 
 	func testDBCIntenseMessageOff() {
-		let wasIntensity: Int = DBCBridge.intensityLevel;
+		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		// Setting `DBCBridge.intensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -370,7 +380,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(1 == 2, "Test Message", intensity: 15)
 		ensure(1 == 2, "Test Message", intensity: 15)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message", intensity: 5)
 		check(testStr != nil, "Test Message", intensity: 5)
 		ensure(testStr != nil, "Test Message", intensity: 5)
@@ -383,7 +393,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		check(testStr == nil, "Test Message", intensity: 15)
 		ensure(testStr == nil, "Test Message", intensity: 15)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, "Test Message", intensity: 5)
 		check(nilStr == nil, "Test Message", intensity: 5)
 		ensure(nilStr == nil, "Test Message", intensity: 5)
@@ -402,39 +412,39 @@ class SwiftDBCBridgedTests:  XCTestCase {
 
 	func testPerfomIntenseBlock()
 	{
-		let wasIntensity: Int = DBCBridge.intensityLevel;
+		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
-		var intsity0 = false;
-		var intsity10 = false;
+		var intsity0 = false
+		var intsity10 = false
 
 		performIfDBCIntensity(0)
 		{
-			intsity0 = true;
+			intsity0 = true
 		}
 
 		performIfDBCIntensity(10)
 		{
-			intsity10 = true;
+			intsity10 = true
 		}
 
 		XCTAssertTrue(intsity0)
 		XCTAssertFalse(intsity10)
 
-		DBCBridge.intensityLevel = 10;
+		DBCBridge.intensityLevel = 10
 		XCTAssertTrue(DBCBridge.intensityLevel == 10)
 
-		intsity0 = false;
-		intsity10 = false;
+		intsity0 = false
+		intsity10 = false
 
 		performIfDBCIntensity(0)
 		{
-			intsity0 = true;
+			intsity0 = true
 		}
 
 		performIfDBCIntensity(10)
 		{
-			intsity10 = true;
+			intsity10 = true
 		}
 
 		XCTAssertTrue(intsity0)

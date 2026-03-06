@@ -8,8 +8,6 @@
 
 #import "DBCIntensityLevel.h"
 
-#ifdef DEBUG
-
 #ifndef vIntenseDebugging
 #define vIntenseDebugging 0
 #endif
@@ -37,5 +35,3 @@ void DBC_performIfDBCIntensity(NSInteger intensity, void (^ _Nonnull block)(void
 		block();
 	}
 }
-
-#endif

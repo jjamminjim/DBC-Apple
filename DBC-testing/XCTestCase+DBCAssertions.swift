@@ -6,14 +6,10 @@
 //  Copyright © 2015 mohamede1945. All rights reserved.
 //
 
-/// ### IMPORTANT HOW TO USE ###
-/// 1. Drop `ProgrammerAssertions.swift` to the target of your app or framework under test. Just besides your source code.
-/// 2. Drop `XCTestCase+ProgrammerAssertions.swift` to your test target. Just besides your test cases.
-/// 3. Use `assert`, `assertionFailure`, `precondition`, `preconditionFailure` and `fatalError` normally as you always do.
-/// 4. Unit test them with the new methods `expectAssert`, `expectAssertionFailure`, `expectPrecondition`, `expectPreconditionFailure` and `expectFatalError`.
+/// XCTest helpers for verifying DBC assertion closures from Swift tests.
 ///
-/// This file is the unit test assertions.
-/// For a complete project example see <https://github.com/mohamede1945/AssertionsTestingExample>
+/// The implementation is adapted from
+/// <https://github.com/mohamede1945/AssertionsTestingExample>.
 
 import Foundation
 import XCTest
@@ -35,7 +31,7 @@ public extension XCTestCase {
 	- parameter line:            The line number that called the method.
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
-	func expectRequire(_ expectedMessage: String? = nil, file: StaticString = #file, line: UInt = #line, testCase: @escaping () -> Void) {
+	func expectRequire(_ expectedMessage: String? = nil, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
 			DBCType.require.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
 		}
 	
@@ -48,7 +44,7 @@ public extension XCTestCase {
 	- parameter line:            The line number that called the method.
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
-	func expectRequireFailure(_ expectedMessage: String, file: StaticString = #file, line: UInt = #line, testCase: @escaping () -> Void) {
+	func expectRequireFailure(_ expectedMessage: String, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
 		DBCFailureType.requireFailure.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
 	}
 	
@@ -61,7 +57,7 @@ public extension XCTestCase {
 	- parameter line:            The line number that called the method.
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
-	func expectCheck(_ expectedMessage: String? = nil, file: StaticString = #file, line: UInt = #line, testCase: @escaping () -> Void) {
+	func expectCheck(_ expectedMessage: String? = nil, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
 		DBCType.check.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
 	}
 	
@@ -74,7 +70,7 @@ public extension XCTestCase {
 	- parameter line:            The line number that called the method.
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
-	func expectCheckFailure(_ expectedMessage: String, file: StaticString = #file, line: UInt = #line, testCase: @escaping () -> Void) {
+	func expectCheckFailure(_ expectedMessage: String, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
 		DBCFailureType.checkFailure.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
 	}
 	
@@ -87,7 +83,7 @@ public extension XCTestCase {
 	- parameter line:            The line number that called the method.
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
-	func expectEnsure(_ expectedMessage: String? = nil, file: StaticString = #file, line: UInt = #line, testCase: @escaping () -> Void) {
+	func expectEnsure(_ expectedMessage: String? = nil, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
 		DBCType.ensure.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
 	}
 	
@@ -100,7 +96,7 @@ public extension XCTestCase {
 	- parameter line:            The line number that called the method.
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
-	func expectEnsureFailure(_ expectedMessage: String, file: StaticString = #file, line: UInt = #line, testCase: @escaping () -> Void) {
+	func expectEnsureFailure(_ expectedMessage: String, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
 		DBCFailureType.ensureFailure.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
 	}
 }
@@ -282,4 +278,3 @@ private enum DBCFailureType : String, DBCTestType {
 		}
 	}
 }
-

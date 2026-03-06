@@ -23,8 +23,6 @@
  for these calls
  */
 
-#ifdef DEBUG
-
 @import Foundation;
 
 #ifdef __cplusplus
@@ -40,8 +38,6 @@ extern "C" {
 	
 #ifdef __cplusplus
 }
-#endif
-
 #endif
 
 #endif

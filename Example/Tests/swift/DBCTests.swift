@@ -609,40 +609,40 @@ class SwiftDBCTests:  XCTestCase {
 		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 	
-		var intsity0 = false
-		var intsity10 = false
+		var intensity0 = false
+		var intensity10 = false
 
 		performIfDBCIntensity(0)
 		{
-			intsity0 = true
+			intensity0 = true
 		}
 
 		performIfDBCIntensity(10)
 		{
-			intsity10 = true
+			intensity10 = true
 		}
 
-		XCTAssertTrue(intsity0)
-		XCTAssertFalse(intsity10)
+		XCTAssertTrue(intensity0)
+		XCTAssertFalse(intensity10)
 
 		dbcIntensityLevel = 10
 		XCTAssertTrue(dbcIntensityLevel == 10)
 			
-		intsity0 = false
-		intsity10 = false
+		intensity0 = false
+		intensity10 = false
 
 		performIfDBCIntensity(0)
 		{
-			intsity0 = true
+			intensity0 = true
 		}
 
 		performIfDBCIntensity(10)
 		{
-			intsity10 = true
+			intensity10 = true
 		}
 
-		XCTAssertTrue(intsity0)
-		XCTAssertTrue(intsity10)
+		XCTAssertTrue(intensity0)
+		XCTAssertTrue(intensity10)
 		
 		dbcIntensityLevel = wasIntensity
 		XCTAssertTrue(dbcIntensityLevel == 0)

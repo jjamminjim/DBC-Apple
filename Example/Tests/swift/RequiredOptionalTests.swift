@@ -227,4 +227,24 @@ class RequiredOptionalTests: XCTestCase {
 			XCTAssertEqual(logger.entries, ["Failed REQUIRE : Typed Error"])
 		}
 	}
+
+	func testDBCOptionalNSErrorUsesObjectiveCBridgeFriendlyMetadataTypes() {
+		let nilString: String? = nil
+		let nsError: NSError
+
+		do {
+			_ = try nilString.required("Bridge Metadata")
+			XCTFail("Expected required() to throw")
+			return
+		} catch let error as DBCOptionalError {
+			nsError = error.nsError
+		} catch {
+			XCTFail("Unexpected error type: \(error)")
+			return
+		}
+
+		XCTAssertTrue(nsError.userInfo["file"] is String)
+		XCTAssertTrue(nsError.userInfo["function"] is String)
+		XCTAssertTrue(nsError.userInfo["line"] is Int)
+	}
 }

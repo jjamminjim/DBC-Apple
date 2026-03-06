@@ -36,9 +36,9 @@ public struct DBCOptionalError: LocalizedError {
 			code: legacyNSErrorCode,
 			userInfo: [
 				NSLocalizedDescriptionKey: message,
-				"file": file,
-				"function": function,
-				"line": line
+				"file": String(describing: file),
+				"function": String(describing: function),
+				"line": Int(line)
 			]
 		)
 	}
@@ -119,119 +119,118 @@ public extension Optional {
 		DBC.check(self != nil, msg, intensity:intensity, file: file, line: line)
 		return self
 	}
-        
-    // MARK :- versions that throw errors
+	
+	// MARK: - Versions That Throw Errors
 
-    /// Require that this optional wraps a non-nil value.
-    /// If nil, a `DBCOptionalError` is thrown.
-    ///
-    /// This method will either return the wrapped value, or throw a `DBCOptionalError`
-    /// containing debug information.
-    ///
-    /// On failure, this method emits an `inform` log before rethrowing the error.
-    ///
-    /// - parameter message: Optionally pass a message that will get included in any error
-    ///                   message generated in case nil was found.
-    ///
-    /// - SeeAlso: DBC.require()
-    ///
-    /// - return: The optional's wrapped value, or throws `DBCOptionalError`.
-    func required(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> Wrapped {
+	/// Require that this optional wraps a non-nil value.
+	/// If nil, a `DBCOptionalError` is thrown.
+	///
+	/// This method will either return the wrapped value, or throw a `DBCOptionalError`
+	/// containing debug information.
+	///
+	/// On failure, this method emits an `inform` log before rethrowing the error.
+	///
+	/// - parameter message: Optionally pass a message that will get included in any error
+	///                   message generated in case nil was found.
+	///
+	/// - SeeAlso: DBC.require()
+	///
+	/// - return: The optional's wrapped value, or throws `DBCOptionalError`.
+	func required(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> Wrapped {
 		do {
 			return try assertNonNil(.require, message: message, file: file, line: line, method: method)
 		} catch {
 			reportError(error, message: message)
 			throw error
 		}
-    }
+	}
 
-    /// Require that this optional wraps a non-nil value that can be cast to `CastType`.
-    /// If nil, or the cast fails, a `DBCOptionalError` is thrown.
-    ///
-    /// This method will either return the wrapped value cast to CastType,
-    /// or throw a `DBCOptionalError` containing debug information.
-    ///
-    /// On failure, this method emits an `inform` log before rethrowing the error.
-    ///
-    /// - parameter message: Optionally pass a message that will get included in any error
-    ///                   message generated in case nil was found.
-    ///
-    /// - SeeAlso: DBC.require()
-    ///
-    /// - return: The optional's wrapped value cast to `CastType`, or throws `DBCOptionalError`.
-    func requiredCast<CastType>(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
+	/// Require that this optional wraps a non-nil value that can be cast to `CastType`.
+	/// If nil, or the cast fails, a `DBCOptionalError` is thrown.
+	///
+	/// This method will either return the wrapped value cast to CastType,
+	/// or throw a `DBCOptionalError` containing debug information.
+	///
+	/// On failure, this method emits an `inform` log before rethrowing the error.
+	///
+	/// - parameter message: Optionally pass a message that will get included in any error
+	///                   message generated in case nil was found.
+	///
+	/// - SeeAlso: DBC.require()
+	///
+	/// - return: The optional's wrapped value cast to `CastType`, or throws `DBCOptionalError`.
+	func requiredCast<CastType>(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
 		do {
 			return try assertCast(.require, message: message, file: file, line: line, method: method)
 		} catch {
 			reportError(error, message: message)
 			throw error
 		}
-    }
-    
-    func requiredCast<CastType>(to: CastType.Type, message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
+	}
+	
+	func requiredCast<CastType>(to: CastType.Type, message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
 		do {
 			return try assertCast(.require, message: message, file: file, line: line, method: method, toType: to)
 		} catch {
 			reportError(error, message: message)
 			throw error
 		}
-    }
+	}
 
-
-    /// Check that this optional wraps a non-nil value.
-    /// If nil, a `DBCOptionalError` is thrown.
-    ///
-    /// This method will either return the wrapped value, or throw a `DBCOptionalError`
-    /// containing debug information.
-    ///
-    /// On failure, this method emits an `inform` log before rethrowing the error.
-    ///
-    /// - parameter message: Optionally pass a message that will get included in any error
-    ///                   message generated in case nil was found.
-    ///
-    /// - SeeAlso: DBC.check()
-    ///
-    /// - return: The optional's wrapped value, or throws `DBCOptionalError`.
-    func checked(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> Wrapped {
+	/// Check that this optional wraps a non-nil value.
+	/// If nil, a `DBCOptionalError` is thrown.
+	///
+	/// This method will either return the wrapped value, or throw a `DBCOptionalError`
+	/// containing debug information.
+	///
+	/// On failure, this method emits an `inform` log before rethrowing the error.
+	///
+	/// - parameter message: Optionally pass a message that will get included in any error
+	///                   message generated in case nil was found.
+	///
+	/// - SeeAlso: DBC.check()
+	///
+	/// - return: The optional's wrapped value, or throws `DBCOptionalError`.
+	func checked(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> Wrapped {
 		do {
 			return try assertNonNil(.check, message: message, file: file, line: line, method: method)
 		} catch {
 			reportError(error, message: message)
 			throw error
 		}
-    }
+	}
 
-    /// Check that this optional wraps a non-nil value that can be cast to `CastType`.
-    /// If nil, or the cast fails, a `DBCOptionalError` is thrown.
-    ///
-    /// This method will either return the wrapped value cast to CastType,
-    /// or throw a `DBCOptionalError` containing debug information.
-    ///
-    /// On failure, this method emits an `inform` log before rethrowing the error.
-    ///
-    /// - parameter message: Optionally pass a message that will get included in any error
-    ///                   message generated in case nil was found.
-    ///
-    /// - SeeAlso: DBC.check()
-    ///
-    /// - return: The optional's wrapped value cast to `CastType`, or throws `DBCOptionalError`.
-    func checkedCast<CastType>(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
+	/// Check that this optional wraps a non-nil value that can be cast to `CastType`.
+	/// If nil, or the cast fails, a `DBCOptionalError` is thrown.
+	///
+	/// This method will either return the wrapped value cast to CastType,
+	/// or throw a `DBCOptionalError` containing debug information.
+	///
+	/// On failure, this method emits an `inform` log before rethrowing the error.
+	///
+	/// - parameter message: Optionally pass a message that will get included in any error
+	///                   message generated in case nil was found.
+	///
+	/// - SeeAlso: DBC.check()
+	///
+	/// - return: The optional's wrapped value cast to `CastType`, or throws `DBCOptionalError`.
+	func checkedCast<CastType>(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
 		do {
 			return try assertCast(.check, message: message, file: file, line: line, method: method)
 		} catch {
 			reportError(error, message: message)
 			throw error
 		}
-    }
+	}
 
-    func checkedCast<CastType>(to: CastType.Type, message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
+	func checkedCast<CastType>(to: CastType.Type, message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) throws -> CastType {
 		do {
 			return try assertCast(.check, message: message, file: file, line: line, method: method, toType: to)
 		} catch {
 			reportError(error, message: message)
 			throw error
 		}
-    }
+	}
 }
 
 private extension Optional {

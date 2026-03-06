@@ -75,7 +75,7 @@ public extension Optional {
 	func require(_ message: String? = nil, file: StaticString = #fileID, line: UInt = #line, method: StaticString = #function) -> Wrapped {
 		let msg = resolvedMessage("Required optional is nil.", customMessage: message, method: method)
 		guard let wrapped = self else {
-			failRequire(msg, file: file, line: line)
+			return failRequire(msg, file: file, line: line)
 		}
 
 		return wrapped
@@ -96,7 +96,7 @@ public extension Optional {
 		let value = self.require(message, file: file, line: line, method: method)
 		guard let castValue = value as? CastType else {
 			let msg = resolvedMessage("Failed to cast value of type \(type(of: self)) to \(CastType.self).", customMessage: message, method: method)
-			failRequire(msg, file: file, line: line)
+			return failRequire(msg, file: file, line: line)
 		}
 		
 		return castValue
@@ -128,6 +128,8 @@ public extension Optional {
     /// This method will either return the wrapped value, or throw a `DBCOptionalError`
     /// containing debug information.
     ///
+    /// On failure, this method emits an `inform` log before rethrowing the error.
+    ///
     /// - parameter message: Optionally pass a message that will get included in any error
     ///                   message generated in case nil was found.
     ///
@@ -148,6 +150,8 @@ public extension Optional {
     ///
     /// This method will either return the wrapped value cast to CastType,
     /// or throw a `DBCOptionalError` containing debug information.
+    ///
+    /// On failure, this method emits an `inform` log before rethrowing the error.
     ///
     /// - parameter message: Optionally pass a message that will get included in any error
     ///                   message generated in case nil was found.
@@ -180,6 +184,8 @@ public extension Optional {
     /// This method will either return the wrapped value, or throw a `DBCOptionalError`
     /// containing debug information.
     ///
+    /// On failure, this method emits an `inform` log before rethrowing the error.
+    ///
     /// - parameter message: Optionally pass a message that will get included in any error
     ///                   message generated in case nil was found.
     ///
@@ -200,6 +206,8 @@ public extension Optional {
     ///
     /// This method will either return the wrapped value cast to CastType,
     /// or throw a `DBCOptionalError` containing debug information.
+    ///
+    /// On failure, this method emits an `inform` log before rethrowing the error.
     ///
     /// - parameter message: Optionally pass a message that will get included in any error
     ///                   message generated in case nil was found.
@@ -270,11 +278,12 @@ private extension Optional {
 		}
 	}
 
-	// DBC failure APIs are modeled as `Void`, but a failing precondition should never
-	// return to the caller. Centralizing the terminal fallback keeps call sites readable.
-	func failRequire(_ message: @autoclosure () -> String, file: StaticString, line: UInt) -> Never {
-		requireFailure(message(), file: file, line: line)
-		fatalError("DBC.requireFailure should have terminated execution.")
+	// `DBC.require(false, ...)` should terminate execution. If a custom precondition
+	// override returns for testing, hand back an unreachable placeholder so the caller
+	// can continue unwinding through the test harness.
+	func failRequire<ReturnType>(_ message: @autoclosure () -> String, file: StaticString, line: UInt) -> ReturnType {
+		DBC.require(false, message(), file: file, line: line)
+		return unsafeBitCast(Optional<ReturnType>.none as ReturnType?, to: ReturnType.self)
 	}
 
 	func assertNonNil(_ assertType: DBCAssertType, message: String?, file: StaticString, line: UInt, method: StaticString) throws -> Wrapped {

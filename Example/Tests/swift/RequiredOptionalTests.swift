@@ -90,6 +90,22 @@ class RequiredOptionalTests: XCTestCase {
 		//expectCheck("Test Message") { _ = nilStr.check("Test Message") }
 	}
 
+	func testRequireUsesRequireAssertionPath() {
+		let nilString: String? = nil
+
+		expectRequire("Required optional is nil. In testRequireUsesRequireAssertionPath().") {
+			_ = nilString.require()
+		}
+	}
+
+	func testRequireCastUsesRequireAssertionPath() {
+		let ints: [Int]? = [1, 2, 3]
+
+		expectRequire("Failed to cast value of type Optional<Array<Int>> to Array<String>. In testRequireCastUsesRequireAssertionPath().") {
+			let _: [String] = ints.requireCast()
+		}
+	}
+
 	func testRequiredThrowsTypedDBCOptionalError() {
 		let nilString: String? = nil
 

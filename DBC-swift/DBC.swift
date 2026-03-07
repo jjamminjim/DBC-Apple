@@ -281,7 +281,7 @@ private enum AssertionSupport {
 #if DEBUG
 		if intensity <= dbcIntensityLevel {
 			let assertionCondition = condition()
-			let failureMessage = "failed \(assertion) : \(message())"
+			let failureMessage = assertionCondition ? "" : "failed \(assertion) : \(message())"
 			debugAssert(assertionCondition, failureMessage, file, line)
 		} else {
 			informAssertionIfFailed(condition: condition, assertion: assertion, message: message, intensity: intensity, file: file, line: line, forceLogging: true)

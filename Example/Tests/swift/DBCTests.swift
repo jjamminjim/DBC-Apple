@@ -186,6 +186,34 @@ class SwiftDBCTests:  XCTestCase {
 		XCTAssertEqual(ensureFailureMessageEvaluations, 0)
 		#endif
 	}
+
+	func testPassingCheckAndEnsureDoNotEvaluateMessages() {
+		guard assertionsAreEnabled() else { return }
+
+		var checkMessageEvaluations = 0
+		var ensureMessageEvaluations = 0
+
+		check(
+			true,
+			{
+				checkMessageEvaluations += 1
+				return "check message"
+			}(),
+			intensity: 0
+		)
+
+		ensure(
+			true,
+			{
+				ensureMessageEvaluations += 1
+				return "ensure message"
+			}(),
+			intensity: 0
+		)
+
+		XCTAssertEqual(checkMessageEvaluations, 0)
+		XCTAssertEqual(ensureMessageEvaluations, 0)
+	}
 	
 	func testDBCAll() {
 		guard assertionsAreEnabled() else { return }

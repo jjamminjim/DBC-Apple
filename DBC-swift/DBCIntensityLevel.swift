@@ -19,7 +19,9 @@ import Foundation
 ///
 /// `dbcIntensityLevel` defaults to zero.
 ///
-/// Setting `dbcIntensityLevel` to a value less than zero effectively disables assertions/messaging.
+/// Setting `dbcIntensityLevel` to a value less than zero disables normal intensity-gated
+/// assertions and messaging. In debug builds, suppressed assertion failures may still emit
+/// fallback `inform` logs so the signal is not lost while debugging.
 public var dbcIntensityLevel: Int {
 	get { DBCConfigurationStorage.dbcIntensityLevel }
 	set { DBCConfigurationStorage.dbcIntensityLevel = newValue }

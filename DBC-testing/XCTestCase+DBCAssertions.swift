@@ -32,8 +32,8 @@ public extension XCTestCase {
 	- parameter testCase:        The test case to be executed that expected to fire the assertion method.
 	*/
 	func expectRequire(_ expectedMessage: String? = nil, file: StaticString = #fileID, line: UInt = #line, testCase: @escaping () -> Void) {
-			DBCType.require.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
-		}
+		DBCType.require.expect(self, expectedMessage: expectedMessage, file: file, line: line, testCase: testCase)
+	}
 	
 	/**
 	Expects an `requireFailure` to be called.

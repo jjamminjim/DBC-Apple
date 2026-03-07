@@ -278,11 +278,10 @@ private extension Optional {
 	}
 
 	// `DBC.require(false, ...)` should terminate execution. If a custom precondition
-	// override returns for testing, hand back an unreachable placeholder so the caller
-	// can continue unwinding through the test harness.
+	// override returns, trap rather than fabricating an invalid `ReturnType` value.
 	func failRequire<ReturnType>(_ message: @autoclosure () -> String, file: StaticString, line: UInt) -> ReturnType {
 		DBC.require(false, message(), intensity: Int.min, file: file, line: line)
-		return unsafeBitCast(Optional<ReturnType>.none as ReturnType?, to: ReturnType.self)
+		fatalError("Unreachable failRequire returned for \(ReturnType.self)")
 	}
 
 	func assertNonNil(_ assertType: DBCAssertType, message: String?, file: StaticString, line: UInt, method: StaticString) throws -> Wrapped {

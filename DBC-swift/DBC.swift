@@ -267,7 +267,13 @@ open class Assertions {
 private enum AssertionSupport {
 	static func informAssertionIfFailed(condition: () -> Bool, assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, forceLogging: Bool) {
 		let informIntensity = forceLogging ? Int.min : intensity
-		informIf(!condition(), "failed \(assertion)(\(intensity)) : \(message())", intensity: informIntensity, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
+
+		if !forceLogging && intensity > dbcIntensityLevel {
+			return
+		}
+
+		let failed = !condition()
+		informIf(failed, "failed \(assertion)(\(intensity)) : \(message())", intensity: informIntensity, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
 	}
 
 	static func informAssertionFailure(_ assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, forceLogging: Bool) {

@@ -16,7 +16,7 @@ SwiftPM tests live in `Example/Tests/swift` and `Example/Tests/objc`.
 ### Swift Package Manager
 
 ```swift
-.package(url: "git@github.com:alignops/DBC-Apple.git", from: "1.4.0")
+.package(name: "DBC", url: "git@github.com:alignops/DBC-Apple.git", from: "1.4.0")
 ```
 
 Add one of these products to your target:

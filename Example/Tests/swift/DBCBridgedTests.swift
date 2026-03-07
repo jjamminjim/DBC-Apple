@@ -410,7 +410,7 @@ class SwiftDBCBridgedTests:  XCTestCase {
 		XCTAssertTrue(DBCBridge.intensityLevel == 0)
 	}
 
-	func testPerfomIntenseBlock()
+	func testPerformIntenseBlock()
 	{
 		let wasIntensity: Int = DBCBridge.intensityLevel
 		XCTAssertTrue(wasIntensity == 0)

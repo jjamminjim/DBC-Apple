@@ -632,7 +632,7 @@ class SwiftDBCTests:  XCTestCase {
 		XCTAssertTrue(dbcIntensityLevel == 0)
 	}
 	
-	func testPerfomIntenseBlock()
+	func testPerformIntenseBlock()
 	{
 		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)

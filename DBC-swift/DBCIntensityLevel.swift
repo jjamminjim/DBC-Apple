@@ -19,18 +19,21 @@ import Foundation
 ///
 /// `dbcIntensityLevel` defaults to zero.
 ///
-/// Setting `dbcIntensityLevel` to a value less then zero effectively disables assertions/messaging.
-public var dbcIntensityLevel: Int = 0
+/// Setting `dbcIntensityLevel` to a value less than zero disables normal intensity-gated
+/// assertions and messaging. In debug builds, suppressed assertion failures may still emit
+/// fallback `inform` logs so the signal is not lost while debugging.
+public var dbcIntensityLevel: Int {
+	get { DBCConfigurationStorage.dbcIntensityLevel }
+	set { DBCConfigurationStorage.dbcIntensityLevel = newValue }
+}
 
 
 /// Performs `block` closure if `intensity` is set at or below `dbcIntensityLevel`.
-/// - Note: Active during testing/debuging but will not impact performance of shipping code.
+/// - Note: Active in all builds when `intensity <= dbcIntensityLevel`.
 /// - SeeAlso: dbcIntensityLevel
 public func performIfDBCIntensity(_ intensity: Int, block: ()->Void)
 {
-#if DEBUG
 	if (intensity <= dbcIntensityLevel) {
 		block()
 	}
-#endif
 }

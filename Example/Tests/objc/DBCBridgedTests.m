@@ -21,6 +21,15 @@
 
 @implementation DBCBridgedTests
 
+- (BOOL)skipWhenAssertionsAreDisabled
+{
+#ifndef DEBUG
+	return YES;
+#else
+	return NO;
+#endif
+}
+
 - (void)setUp
 {
     [super setUp];
@@ -52,6 +61,7 @@
 
 - (void)testDBCIntense
 {
+	if ([self skipWhenAssertionsAreDisabled]) { return; }
 	NSInteger wasIntensity = [DBCBridge intensityLevel];
 	[DBCBridge setIntensityLevel:10];
 
@@ -111,6 +121,7 @@
 
 - (void)testDBCIntenseMessage
 {
+	if ([self skipWhenAssertionsAreDisabled]) { return; }
 	NSInteger wasIntensity = [DBCBridge intensityLevel];
 	[DBCBridge setIntensityLevel:10];
 

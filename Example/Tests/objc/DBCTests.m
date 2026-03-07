@@ -23,6 +23,15 @@
 
 @implementation DBCTests
 
+- (BOOL)skipWhenAssertionsAreDisabled
+{
+#ifndef DEBUG
+	return YES;
+#else
+	return NO;
+#endif
+}
+
 - (void)setUp
 {
     [super setUp];
@@ -44,6 +53,7 @@
 
 - (void)testDBC
 {
+	if ([self skipWhenAssertionsAreDisabled]) { return; }
     // This is an example of a functional test case.
 	XCTAssertNoThrow(REQUIRE(true));
 	XCTAssertNoThrow(CHECK(true));
@@ -90,6 +100,7 @@
 
 - (void)testDBCMessage
 {
+	if ([self skipWhenAssertionsAreDisabled]) { return; }
 	// This is an example of a functional test case.
 	XCTAssertNoThrow(REQUIRE_MSG(true, @"Test Message"));
 	XCTAssertNoThrow(CHECK_MSG(true, @"Test Message"));
@@ -136,6 +147,7 @@
 
 - (void)testDBCIntense
 {
+	if ([self skipWhenAssertionsAreDisabled]) { return; }
 	NSInteger wasIntensity = DBC_DebugIntensityLevel();
 	DBC_SetDebugIntensityLevel(10);
 
@@ -195,6 +207,7 @@
 
 - (void)testDBCIntenseMessage
 {
+	if ([self skipWhenAssertionsAreDisabled]) { return; }
 	NSInteger wasIntensity = DBC_DebugIntensityLevel();
 	DBC_SetDebugIntensityLevel(10);
 

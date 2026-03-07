@@ -23,10 +23,10 @@
 // documentation of what every component expects (precondition), what it guarantees
 // in return (postcondition) and what general conditions it maintains (invariant).
 //
-// The following methods assist in "Design by contract".  Each will check the "condition"
-// passed in.  If the condition fails, then each will display a message to the debugger 
-// console and throw a swift assertion error, an attempt will also be made to break in the 
-// debugger.
+// The following methods assist in "Design by contract". Each checks the supplied condition.
+// When a condition fails, the library either stops execution using the matching Swift
+// assertion primitive or emits an `inform` message, depending on the assertion kind,
+// build configuration, and active intensity level.
 //
 // Syntactically, these assertions are boolean expressions and although they perform
 // identical tasks, each is semantically different.
@@ -95,7 +95,7 @@ import Foundation
 ///
 /// - SeeAlso: precondition()
 /// - SeeAlso: `DBCIntensityLevel.swift`
-public func require(_ condition:  @autoclosure () -> Bool, _ message: @autoclosure () -> String = "", intensity: Int = 0, file: StaticString = #file, line: UInt = #line) {
+public func require(_ condition:  @autoclosure () -> Bool, _ message: @autoclosure () -> String = "", intensity: Int = 0, file: StaticString = #fileID, line: UInt = #line) {
 	if (intensity <= dbcIntensityLevel) {
 		Assertions.precondition(condition(), "failed require : \(message())", file, line)
 	}
@@ -122,7 +122,7 @@ public func require(_ condition:  @autoclosure () -> Bool, _ message: @autoclosu
 ///
 /// - SeeAlso: preconditionFailure()
 /// - SeeAlso: `DBCIntensityLevel.swift`
-public func requireFailure(_ message: @autoclosure () -> String, intensity:Int = 0, file: StaticString = #file, line: UInt = #line) {
+public func requireFailure(_ message: @autoclosure () -> String, intensity:Int = 0, file: StaticString = #fileID, line: UInt = #line) {
     if (intensity <= dbcIntensityLevel) {
         Assertions.preconditionFailure("failed require : \(message())", file, line)
     }
@@ -131,110 +131,81 @@ public func requireFailure(_ message: @autoclosure () -> String, intensity:Int =
     }
 }
 
-
 // MARK: - Postconditions	, introduced by the keyword ensure
 /// Postconditions express conditions that the routine (the supplier) 
 /// guarantees on return, if the preconditions where satisfied on entry.
 
-/// Check a promised postcondition before leaving a roiutine.
-///.
-/// Use this function to validate postconditions active during testing
-/// but will not impact performance of shipping code.
+/// Check a promised postcondition before leaving a routine.
 ///
-/// - Note: Active during testing/debuging but will not impact performance of shipping code.
+/// Use this function to validate postconditions during testing. In release builds,
+/// failed checks log through `inform` when `intensity <= dbcIntensityLevel`.
+///
+/// - Note: In debug builds, disabled intensities still surface failures through `inform`.
 ///
 /// - SeeAlso: assert()
 /// - SeeAlso: `DBCIntensityLevel.swift`
-public func ensure(_ condition: @autoclosure () -> Bool, _ message: @autoclosure () -> String = "", intensity: Int = 0, file: StaticString = #file, line: UInt = #line) {
-#if DEBUG
-	if (intensity <= dbcIntensityLevel) {
-		Assertions.assert(condition(), "failed ensure : \(message())", file, line)
-	}
-	else {
-		informIf(!condition(), "failed ensure(\(intensity)) : \(message())", intensity: Int.min, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
-	}
-#endif
+public func ensure(_ condition: @autoclosure () -> Bool, _ message: @autoclosure () -> String = "", intensity: Int = 0, file: StaticString = #fileID, line: UInt = #line) {
+	AssertionSupport.performDebugAssertion(condition: condition, assertion: "ensure", message: message, intensity: intensity, file: file, line: line, debugAssert: Assertions.assert)
 }
 
 /// Indicate that a postcondition was violated.
 ///
-/// Use this function to stop the program, without impacting the
-/// performance of shipping code, when control flow is not expected to
-/// reach the call.
+/// Use this function to stop the program when control flow is not expected to
+/// reach the call during testing. In release builds, failures log through `inform`
+/// when `intensity <= dbcIntensityLevel`.
 ///
-/// - Note: Active during testing/debuging but will not impact performance of shipping code.
+/// - Note: In debug builds, disabled intensities still surface failures through `inform`.
 ///
 /// - SeeAlso: assertFailure()
 /// - SeeAlso: `DBCIntensityLevel.swift`
-public func ensureFailure(_ message: @autoclosure () -> String, intensity: Int = 0, file: StaticString = #file, line: UInt = #line) {
-#if DEBUG
-    if (intensity <= dbcIntensityLevel) {
-        Assertions.assertionFailure("failed ensure : \(message())", file, line)
-    }
-    else {
-         inform("failed ensure(\(intensity)): \(message())", intensity: Int.min, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
-    }
-#endif
+public func ensureFailure(_ message: @autoclosure () -> String, intensity: Int = 0, file: StaticString = #fileID, line: UInt = #line) {
+	AssertionSupport.performDebugAssertionFailure("ensure", message: message, intensity: intensity, file: file, line: line, debugAssertFailure: Assertions.assertionFailure)
 }
 
-// MARK: - Runtime asssertions, introduced by the keyword check
+// MARK: - Runtime assertions, introduced by the keyword check
 /// Runtime checks express/assert the expected values of (computed) variables 
 /// and their relationships within the routine.
 
-/// Use this function for internal sanity checks that are active
-/// during testing but will not impact performance of shipping code.
+/// Use this function for internal sanity checks during testing. In release builds,
+/// failed checks log through `inform` when `intensity <= dbcIntensityLevel`.
 ///
-/// - Note: Active during testing/debuging but will not impact performance of shipping code.
+/// - Note: In debug builds, disabled intensities still surface failures through `inform`.
 ///
 /// - SeeAlso: assert()
 /// - SeeAlso: `DBCIntensityLevel.swift`
-public func check(_ condition: @autoclosure () -> Bool, _ message: @autoclosure () -> String = "", intensity: Int = 0, file: StaticString = #file, line: UInt = #line) {
-#if DEBUG
-	if (intensity <= dbcIntensityLevel) {
-		Assertions.assert(condition(), "failed check : \(message())", file, line)
-	}
-	else {
-		informIf(!condition(), "failed check(\(intensity)) : \(message())", intensity: Int.min, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
-	}
-#endif
+public func check(_ condition: @autoclosure () -> Bool, _ message: @autoclosure () -> String = "", intensity: Int = 0, file: StaticString = #fileID, line: UInt = #line) {
+	AssertionSupport.performDebugAssertion(condition: condition, assertion: "check", message: message, intensity: intensity, file: file, line: line, debugAssert: Assertions.assert)
 }
 
 /// Indicate that an internal sanity check failed.
 ///
-/// Use this function to stop the program, without impacting the
-/// performance of shipping code, when control flow is not expected to
-/// reach the call.
+/// Use this function to stop the program when control flow is not expected to
+/// reach the call during testing. In release builds, failures log through `inform`
+/// when `intensity <= dbcIntensityLevel`.
 ///
-/// - Note: Active during testing/debuging but will not impact performance of shipping code.
+/// - Note: In debug builds, disabled intensities still surface failures through `inform`.
 ///
 /// - SeeAlso: assertFailure()
 /// - SeeAlso: `DBCIntensityLevel.swift`
-public func checkFailure(_ message: @autoclosure () -> String, intensity: Int = 0, file: StaticString = #file, line: UInt = #line) {
-#if DEBUG
-    if (intensity <= dbcIntensityLevel) {
-        Assertions.assertionFailure("failed check : \(message())", file, line)
-    }
-    else {
-        inform("failed check(\(intensity)) : \(message())", intensity: Int.min, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
-    }
-#endif
+public func checkFailure(_ message: @autoclosure () -> String, intensity: Int = 0, file: StaticString = #fileID, line: UInt = #line) {
+	AssertionSupport.performDebugAssertionFailure("check", message: message, intensity: intensity, file: file, line: line, debugAssertFailure: Assertions.assertionFailure)
 }
 
-/// Set to 'true' to break in the debugger when assertions fail yet are disabled due to intensity level.
+/// Set to `true` to break in the debugger when assertion failures are reported through fallback `inform` logging.
 ///
-/// DBC assertions that fail their condition but are silenced due to intensity level will still print the
-/// failure to the debug console. When `dbcBreakOnAssertionsFailures` is `true` these conditions will also
-/// break in the debugger.
+/// This applies both when debug assertions are silenced by the intensity gate and when `check`/`ensure`
+/// fall back to `inform` logging in release builds. When `dbcBreakOnAssertionsFailures` is `true`
+/// these reported failures will also break in the debugger.
 ///
 /// Default is `false`
-public var dbcBreakOnAssertionsFailures: Bool = false
+public var dbcBreakOnAssertionsFailures: Bool {
+	get { DBCConfigurationStorage.dbcBreakOnAssertionsFailures }
+	set { DBCConfigurationStorage.dbcBreakOnAssertionsFailures = newValue }
+}
 
 // MARK: - Assertions class, custom assertions closures
-/// Stores custom assertions closures, by default each closure envolks Swift assertion functions, but test targets can override them.
-///
-/// Also by default, in addition to envolking Swift assertion functions, each assertion closure throws an NSException which will 
-/// enable crash reporting tools like Crashlytics to pick up all the metadata of the crash. 
-/// See <https://www.swiftbysundell.com/posts/handling-non-optional-optionals-in-swift>
+/// Stores custom assertion closures. By default each closure delegates to the matching Swift assertion function,
+/// but test targets can override them.
 ///
 /// - SeeAlso: XCTestCase+DBCAssertions.swift
 open class Assertions {
@@ -242,93 +213,100 @@ open class Assertions {
 	public typealias assertClosure = (@autoclosure () -> Bool, @autoclosure () -> String, StaticString, UInt) -> Void
 	public typealias assertFailureClosure = (@autoclosure () -> String, StaticString, UInt) -> Void
 	
-	public static var assert: assertClosure = swiftAssert
-	public static var assertionFailure: assertFailureClosure    = swiftAssertionFailure
-	public static var precondition: assertClosure = swiftPrecondition
-	public static var preconditionFailure: assertFailureClosure = swiftPreconditionFailure
-	public static var fatalError: assertFailureClosure = swiftFatalError
+	public static var assert: assertClosure {
+		get { DBCConfigurationStorage.assert }
+		set { DBCConfigurationStorage.assert = newValue }
+	}
+
+	public static var assertionFailure: assertFailureClosure {
+		get { DBCConfigurationStorage.assertionFailure }
+		set { DBCConfigurationStorage.assertionFailure = newValue }
+	}
+
+	public static var precondition: assertClosure {
+		get { DBCConfigurationStorage.precondition }
+		set { DBCConfigurationStorage.precondition = newValue }
+	}
+
+	public static var preconditionFailure: assertFailureClosure {
+		get { DBCConfigurationStorage.preconditionFailure }
+		set { DBCConfigurationStorage.preconditionFailure = newValue }
+	}
+
+	public static var fatalError: assertFailureClosure {
+		get { DBCConfigurationStorage.fatalError }
+		set { DBCConfigurationStorage.fatalError = newValue }
+	}
 	
 	public static let swiftAssert: assertClosure = {
 		(condition: @autoclosure () -> Bool, message: @autoclosure () -> String, file: StaticString, line: UInt) -> Void in
-		
-		#if !os(Linux)
-			if !condition() {
-				let exception = NSException(
-					name: .internalInconsistencyException,
-					reason: "\(message()) in \(file), at line \(line)",
-					userInfo: nil
-				)
-				
-				exception.raise()
-			}
-		#endif
-
 		Swift.assert(condition(), message(), file: file, line: line)
 	}
 	
 	public static let swiftAssertionFailure: assertFailureClosure = {
 		(message: @autoclosure () -> String, file: StaticString, line: UInt) -> Void in
-		
-		#if !os(Linux)
-			let exception = NSException(
-				name: .internalInconsistencyException,
-				reason: "\(message()) in \(file), at line \(line)",
-				userInfo: nil
-			)
-			
-			exception.raise()
-		#endif
-		
 		Swift.assertionFailure(message(), file: file, line: line)
 	}
 	
 	public static let swiftPrecondition: assertClosure = {
 		(condition: @autoclosure () -> Bool, message: @autoclosure () -> String, file: StaticString, line: UInt) -> Void in
-		
-		#if !os(Linux)
-			if !condition() {
-				let exception = NSException(
-					name: .internalInconsistencyException,
-					reason: "\(message()) in \(file), at line \(line)",
-					userInfo: nil
-				)
-				
-				exception.raise()
-			}
-		#endif
-		
 		Swift.precondition(condition(), message(), file: file, line: line)
 	}
 
 	public static let swiftPreconditionFailure: assertFailureClosure = {
 		(message: @autoclosure () -> String, file: StaticString, line: UInt) -> Void in
-		
-		#if !os(Linux)
-			let exception = NSException(
-				name: .internalInconsistencyException,
-				reason: "\(message()) in \(file), at line \(line)",
-				userInfo: nil
-			)
-			
-			exception.raise()
-		#endif
-		
 		Swift.preconditionFailure(message(), file: file, line: line)
 	}
 	
 	public static let swiftFatalError: assertFailureClosure = {
 		(message: @autoclosure () -> String, file: StaticString, line: UInt) -> Void in
-		
-		#if !os(Linux)
-			let exception = NSException(
-				name: .internalInconsistencyException,
-				reason: "\(message()) in \(file), at line \(line)",
-				userInfo: nil
-			)
-			
-			exception.raise()
-		#endif
-		
 		Swift.fatalError(message(), file: file, line: line)
+	}
+}
+
+private enum AssertionSupport {
+	static func informAssertionIfFailed(condition: () -> Bool, assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, forceLogging: Bool) {
+		let informIntensity = forceLogging ? Int.min : intensity
+
+		if !forceLogging && intensity > dbcIntensityLevel {
+			return
+		}
+
+		let failed = !condition()
+		informIf(failed, "failed \(assertion)(\(intensity)): \(message())", intensity: informIntensity, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
+	}
+
+	static func informAssertionFailure(_ assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, forceLogging: Bool) {
+		let informIntensity = forceLogging ? Int.min : intensity
+		inform("failed \(assertion)(\(intensity)): \(message())", intensity: informIntensity, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
+	}
+
+	// `check` and `ensure` are debug assertions, but when they are disabled by intensity
+	// in a debug build we still surface the failure through `inform` so the signal is not lost.
+	static func performDebugAssertion(condition: () -> Bool, assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, debugAssert: Assertions.assertClosure) {
+#if DEBUG
+		if intensity <= dbcIntensityLevel {
+			let assertionCondition = condition()
+			let failureMessage = assertionCondition ? "" : "failed \(assertion) : \(message())"
+			debugAssert(assertionCondition, failureMessage, file, line)
+		} else {
+			informAssertionIfFailed(condition: condition, assertion: assertion, message: message, intensity: intensity, file: file, line: line, forceLogging: true)
+		}
+#else
+		informAssertionIfFailed(condition: condition, assertion: assertion, message: message, intensity: intensity, file: file, line: line, forceLogging: false)
+#endif
+	}
+
+	static func performDebugAssertionFailure(_ assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, debugAssertFailure: Assertions.assertFailureClosure) {
+#if DEBUG
+		if intensity <= dbcIntensityLevel {
+			let failureMessage = "failed \(assertion) : \(message())"
+			debugAssertFailure(failureMessage, file, line)
+		} else {
+			informAssertionFailure(assertion, message: message, intensity: intensity, file: file, line: line, forceLogging: true)
+		}
+#else
+		informAssertionFailure(assertion, message: message, intensity: intensity, file: file, line: line, forceLogging: false)
+#endif
 	}
 }

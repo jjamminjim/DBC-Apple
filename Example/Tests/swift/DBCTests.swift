@@ -22,14 +22,32 @@ import DBCTesting
 import DBC_testing
 #endif
 
+private final class RecordingDBCLogger: DBCLogger {
+	private(set) var entries: [(message: String, file: StaticString, line: UInt)] = []
+
+	func log(_ message: String, separator: String, terminator: String, file: StaticString, line: UInt) {
+		entries.append((message, file, line))
+	}
+}
+
 class SwiftDBCTests:  XCTestCase {
 	override func setUp() {
 		super.setUp()
-		dbcIntensityLevel = 0;
+		dbcIntensityLevel = 0
+		dbcLogger = DBCDebugPrintLogger()
 	}
 
 	override func tearDown() {
+		dbcLogger = DBCDebugPrintLogger()
 		super.tearDown()
+	}
+
+	private func assertionsAreEnabled() -> Bool {
+		#if DEBUG
+		return true
+		#else
+		return false
+		#endif
 	}
 
 	func testDBCRequire() {
@@ -42,24 +60,163 @@ class SwiftDBCTests:  XCTestCase {
 	}
 	
 	func testDBCCheck() {
+		guard assertionsAreEnabled() else { return }
 		check(true)
 		expectCheck() { check(false) }
 	}
 	
 	func testDBCCheckFailure() {
+		guard assertionsAreEnabled() else { return }
 		expectCheckFailure("Some message") { checkFailure("Some message") }
 	}
 	
 	func testDBCEnsure() {
+		guard assertionsAreEnabled() else { return }
 		ensure(true)
 		expectEnsure() { ensure(false) }
 	}
 
 	func testDBCEnsureFailure() {
+		guard assertionsAreEnabled() else { return }
 		expectEnsureFailure("Some message") { ensureFailure("Some message") }
+	}
+
+	func testInformUsesRegisteredLogger() {
+		let logger = RecordingDBCLogger()
+		dbcLogger = logger
+
+		inform("First Message")
+		informIf(true, "Second Message")
+		informIf(false, "Third Message")
+
+		XCTAssertEqual(logger.entries.count, 2)
+		XCTAssertEqual(logger.entries[0].message, "First Message")
+		XCTAssertEqual(logger.entries[1].message, "Second Message")
+	}
+
+	func testAssertionFallbackLoggingRespectsReleaseIntensity() {
+		let logger = RecordingDBCLogger()
+		dbcLogger = logger
+		dbcIntensityLevel = 0
+
+		check(false, intensity: 1)
+		ensure(false, intensity: 1)
+		checkFailure("Hidden", intensity: 1)
+		ensureFailure("Hidden", intensity: 1)
+
+		if assertionsAreEnabled() {
+			XCTAssertEqual(logger.entries.count, 4)
+		} else {
+			XCTAssertEqual(logger.entries.count, 0)
+		}
+	}
+
+	func testSuppressedCheckAndEnsureRemainLazyInReleaseBuilds() {
+		dbcIntensityLevel = 0
+
+		var checkConditionEvaluations = 0
+		var checkMessageEvaluations = 0
+		var ensureConditionEvaluations = 0
+		var ensureMessageEvaluations = 0
+
+		check(
+			{
+				checkConditionEvaluations += 1
+				return false
+			}(),
+			{
+				checkMessageEvaluations += 1
+				return "check"
+			}(),
+			intensity: 1
+		)
+
+		ensure(
+			{
+				ensureConditionEvaluations += 1
+				return false
+			}(),
+			{
+				ensureMessageEvaluations += 1
+				return "ensure"
+			}(),
+			intensity: 1
+		)
+
+		#if DEBUG
+		XCTAssertEqual(checkConditionEvaluations, 1)
+		XCTAssertEqual(checkMessageEvaluations, 1)
+		XCTAssertEqual(ensureConditionEvaluations, 1)
+		XCTAssertEqual(ensureMessageEvaluations, 1)
+		#else
+		XCTAssertEqual(checkConditionEvaluations, 0)
+		XCTAssertEqual(checkMessageEvaluations, 0)
+		XCTAssertEqual(ensureConditionEvaluations, 0)
+		XCTAssertEqual(ensureMessageEvaluations, 0)
+		#endif
+	}
+
+	func testSuppressedCheckFailureAndEnsureFailureRemainLazyInReleaseBuilds() {
+		dbcIntensityLevel = 0
+
+		var checkFailureMessageEvaluations = 0
+		var ensureFailureMessageEvaluations = 0
+
+		checkFailure(
+			{
+				checkFailureMessageEvaluations += 1
+				return "check failure"
+			}(),
+			intensity: 1
+		)
+
+		ensureFailure(
+			{
+				ensureFailureMessageEvaluations += 1
+				return "ensure failure"
+			}(),
+			intensity: 1
+		)
+
+		#if DEBUG
+		XCTAssertEqual(checkFailureMessageEvaluations, 1)
+		XCTAssertEqual(ensureFailureMessageEvaluations, 1)
+		#else
+		XCTAssertEqual(checkFailureMessageEvaluations, 0)
+		XCTAssertEqual(ensureFailureMessageEvaluations, 0)
+		#endif
+	}
+
+	func testPassingCheckAndEnsureDoNotEvaluateMessages() {
+		guard assertionsAreEnabled() else { return }
+
+		var checkMessageEvaluations = 0
+		var ensureMessageEvaluations = 0
+
+		check(
+			true,
+			{
+				checkMessageEvaluations += 1
+				return "check message"
+			}(),
+			intensity: 0
+		)
+
+		ensure(
+			true,
+			{
+				ensureMessageEvaluations += 1
+				return "ensure message"
+			}(),
+			intensity: 0
+		)
+
+		XCTAssertEqual(checkMessageEvaluations, 0)
+		XCTAssertEqual(ensureMessageEvaluations, 0)
 	}
 	
 	func testDBCAll() {
+		guard assertionsAreEnabled() else { return }
 		require(true)
 		check(true)
 		ensure(true)
@@ -76,7 +233,7 @@ class SwiftDBCTests:  XCTestCase {
 		expectCheck() { check(1 == 2) }
 		expectEnsure() { ensure(1 == 2) }
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil)
 		check(testStr != nil)
 		ensure(testStr != nil)
@@ -85,7 +242,7 @@ class SwiftDBCTests:  XCTestCase {
 		expectCheck() { check(testStr == nil) }
 		expectEnsure() { ensure(testStr == nil) }
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		expectRequire() { require(nilStr != nil) }
 		expectCheck() { check(nilStr != nil) }
 		expectEnsure() { ensure(nilStr != nil) }
@@ -96,6 +253,7 @@ class SwiftDBCTests:  XCTestCase {
 	}
 
 	func testDBCMessage() {
+		guard assertionsAreEnabled() else { return }
 		require(true, "Test Message")
 		check(true, "Test Message")
 		ensure(true, "Test Message")
@@ -112,7 +270,7 @@ class SwiftDBCTests:  XCTestCase {
 		expectCheck("Test Message") { check(1 == 2, "Test Message") }
 		expectEnsure("Test Message") { ensure(1 == 2, "Test Message") }
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message")
 		check(testStr != nil, "Test Message")
 		ensure(testStr != nil, "Test Message")
@@ -121,7 +279,7 @@ class SwiftDBCTests:  XCTestCase {
 		expectCheck("Test Message") { check(testStr == nil, "Test Message") }
 		expectEnsure("Test Message") { ensure(testStr == nil, "Test Message") }
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		expectRequire("Test Message") { require(nilStr != nil, "Test Message") }
 		expectCheck("Test Message") { check(nilStr != nil, "Test Message") }
 		expectEnsure("Test Message") { ensure(nilStr != nil, "Test Message") }
@@ -132,7 +290,8 @@ class SwiftDBCTests:  XCTestCase {
 	}
 
 	func testDBCIntense() {
-		let wasIntensity = dbcIntensityLevel;
+		guard assertionsAreEnabled() else { return }
+		let wasIntensity = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		dbcIntensityLevel = 10
@@ -163,7 +322,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(1 == 2, intensity: 15)
 		ensure(1 == 2, intensity: 15)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, intensity: 5)
 		check(testStr != nil, intensity: 5)
 		ensure(testStr != nil, intensity: 5)
@@ -176,7 +335,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(testStr == nil, intensity: 15)
 		ensure(testStr == nil, intensity: 15)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, intensity: 5)
 		check(nilStr == nil, intensity: 5)
 		ensure(nilStr == nil, intensity: 5)
@@ -194,7 +353,8 @@ class SwiftDBCTests:  XCTestCase {
 	}
 
 	func testDBCIntenseMessage() {
-		let wasIntensity: Int = dbcIntensityLevel;
+		guard assertionsAreEnabled() else { return }
+		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 
 		dbcIntensityLevel = 10
@@ -225,7 +385,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(1 == 2, "Test Message", intensity: 15)
 		ensure(1 == 2, "Test Message", intensity: 15)
 
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message", intensity: 5)
 		check(testStr != nil, "Test Message", intensity: 5)
 		ensure(testStr != nil, "Test Message", intensity: 5)
@@ -238,7 +398,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(testStr == nil, "Test Message", intensity: 15)
 		ensure(testStr == nil, "Test Message", intensity: 15)
 
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, "Test Message", intensity: 5)
 		check(nilStr == nil, "Test Message", intensity: 5)
 		ensure(nilStr == nil, "Test Message", intensity: 5)
@@ -256,7 +416,7 @@ class SwiftDBCTests:  XCTestCase {
 	}
 	
 	func testDBCOff() {
-		let wasIntensity: Int = dbcIntensityLevel;
+		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 		
 		// Setting `dbcIntensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -279,7 +439,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(1 == 2)
 		ensure(1 == 2)
 		
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil)
 		check(testStr != nil)
 		ensure(testStr != nil)
@@ -288,7 +448,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(testStr == nil)
 		ensure(testStr == nil)
 		
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr != nil)
 		check(nilStr != nil)
 		ensure(nilStr != nil)
@@ -303,7 +463,7 @@ class SwiftDBCTests:  XCTestCase {
 
 	
 	func testDBCMessageOff() {
-		let wasIntensity: Int = dbcIntensityLevel;
+		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 		
 		// Setting `dbcIntensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -326,7 +486,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(1 == 2, "Test Message")
 		ensure(1 == 2, "Test Message")
 		
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message")
 		check(testStr != nil, "Test Message")
 		ensure(testStr != nil, "Test Message")
@@ -335,7 +495,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(testStr == nil, "Test Message")
 		ensure(testStr == nil, "Test Message")
 		
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr != nil, "Test Message")
 		check(nilStr != nil, "Test Message")
 		ensure(nilStr != nil, "Test Message")
@@ -349,7 +509,7 @@ class SwiftDBCTests:  XCTestCase {
 	}
 	
 	func testDBCIntenseOff() {
-		let wasIntensity: Int = dbcIntensityLevel;
+		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 		
 		// Setting `dbcIntensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -380,7 +540,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(1 == 2, intensity: 15)
 		ensure(1 == 2, intensity: 15)
 		
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, intensity: 5)
 		check(testStr != nil, intensity: 5)
 		ensure(testStr != nil, intensity: 5)
@@ -393,7 +553,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(testStr == nil, intensity: 15)
 		ensure(testStr == nil, intensity: 15)
 		
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, intensity: 5)
 		check(nilStr == nil, intensity: 5)
 		ensure(nilStr == nil, intensity: 5)
@@ -411,7 +571,7 @@ class SwiftDBCTests:  XCTestCase {
 	}
 	
 	func testDBCIntenseMessageOff() {
-		let wasIntensity: Int = dbcIntensityLevel;
+		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 		
 		// Setting `dbcIntensityLevel` to a value less then zero effectively turns assertions/messaging off.
@@ -442,7 +602,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(1 == 2, "Test Message", intensity: 15)
 		ensure(1 == 2, "Test Message", intensity: 15)
 		
-		let testStr: String? = "Test";
+		let testStr: String? = "Test"
 		require(testStr != nil, "Test Message", intensity: 5)
 		check(testStr != nil, "Test Message", intensity: 5)
 		ensure(testStr != nil, "Test Message", intensity: 5)
@@ -455,7 +615,7 @@ class SwiftDBCTests:  XCTestCase {
 		check(testStr == nil, "Test Message", intensity: 15)
 		ensure(testStr == nil, "Test Message", intensity: 15)
 		
-		let nilStr: String? = nil;
+		let nilStr: String? = nil
 		require(nilStr == nil, "Test Message", intensity: 5)
 		check(nilStr == nil, "Test Message", intensity: 5)
 		ensure(nilStr == nil, "Test Message", intensity: 5)
@@ -472,45 +632,45 @@ class SwiftDBCTests:  XCTestCase {
 		XCTAssertTrue(dbcIntensityLevel == 0)
 	}
 	
-	func testPerfomIntenseBlock()
+	func testPerformIntenseBlock()
 	{
-		let wasIntensity: Int = dbcIntensityLevel;
+		let wasIntensity: Int = dbcIntensityLevel
 		XCTAssertTrue(wasIntensity == 0)
 	
-		var intsity0 = false;
-		var intsity10 = false;
+		var intensity0 = false
+		var intensity10 = false
 
 		performIfDBCIntensity(0)
 		{
-			intsity0 = true;
+			intensity0 = true
 		}
 
 		performIfDBCIntensity(10)
 		{
-			intsity10 = true;
+			intensity10 = true
 		}
 
-		XCTAssertTrue(intsity0)
-		XCTAssertFalse(intsity10)
+		XCTAssertTrue(intensity0)
+		XCTAssertFalse(intensity10)
 
-		dbcIntensityLevel = 10;
+		dbcIntensityLevel = 10
 		XCTAssertTrue(dbcIntensityLevel == 10)
 			
-		intsity0 = false;
-		intsity10 = false;
+		intensity0 = false
+		intensity10 = false
 
 		performIfDBCIntensity(0)
 		{
-			intsity0 = true;
+			intensity0 = true
 		}
 
 		performIfDBCIntensity(10)
 		{
-			intsity10 = true;
+			intensity10 = true
 		}
 
-		XCTAssertTrue(intsity0)
-		XCTAssertTrue(intsity10)
+		XCTAssertTrue(intensity0)
+		XCTAssertTrue(intensity10)
 		
 		dbcIntensityLevel = wasIntensity
 		XCTAssertTrue(dbcIntensityLevel == 0)

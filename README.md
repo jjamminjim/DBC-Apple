@@ -1,29 +1,63 @@
 # DBC
 
-[![CI Status](http://img.shields.io/travis/Jim Boyd/DBC.svg?style=flat)](https://travis-ci.org/Jim Boyd/DBC)
-[![Version](https://img.shields.io/cocoapods/v/DBC.svg?style=flat)](http://cocoapods.org/pods/DBC)
-[![License](https://img.shields.io/cocoapods/l/DBC.svg?style=flat)](http://cocoapods.org/pods/DBC)
-[![Platform](https://img.shields.io/cocoapods/p/DBC.svg?style=flat)](http://cocoapods.org/pods/DBC)
+DBC is a small Design by Contract library for Swift and Objective-C. It provides `require`, `check`, `ensure`, and `inform` helpers, plus bridged targets and XCTest helpers for verifying assertion behavior.
 
-## Example
+## Package Layout
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+- `DBC`: core Swift assertions, optional helpers, intensity handling, and logging
+- `DBC-objc`: Objective-C implementation and headers
+- `DBC-bridged`: mixed Swift/Objective-C bridge target
+- `DBC-testing`: XCTest helpers for stubbing and asserting DBC failure paths
 
-## Requirements
+SwiftPM tests live in `Example/Tests/swift` and `Example/Tests/objc`.
 
 ## Installation
 
-DBC is available through [CocoaPods](http://cocoapods.org). To install
-it, simply add the following line to your Podfile:
+### Swift Package Manager
+
+```swift
+.package(name: "DBC", url: "git@github.com:alignops/DBC-Apple.git", from: "1.4.0")
+```
+
+Add one of these products to your target:
+
+```swift
+.product(name: "DBC", package: "DBC")
+.product(name: "DBC-objc", package: "DBC")
+.product(name: "DBC-bridged", package: "DBC")
+.product(name: "DBC-testing", package: "DBC")
+```
+
+### CocoaPods
 
 ```ruby
 pod "DBC"
 ```
 
-## Author 
+## Highlights
 
-Jim Boyd, jim@busybusy.com
+- `require` uses preconditions for failures that must stop execution.
+- `check` and `ensure` use Swift assertions in debug builds when active for the current `dbcIntensityLevel`, and log through `inform` in release builds. When debug assertions are suppressed by the intensity gate, they emit fallback `inform` logs instead of trapping.
+- `inform` and `informIf` are active in all build configurations when `intensity <= dbcIntensityLevel`.
+- Swift logging is swappable through `dbcLogger`; the default logger delegates to `Swift.debugPrint`.
+- The default Swift assertion closures delegate directly to Swift assertion primitives, so Apple-platform failures are Swift runtime traps/preconditions unless you override `Assertions.*`.
+- Throwing optional helpers such as `required()`, `requiredCast()`, `checked()`, and `checkedCast()` now throw `DBCOptionalError`.
+
+## Development
+
+```sh
+swift build
+swift test
+swift test -c release
+```
+
+To run the example Xcode project, install pods first:
+
+```sh
+cd Example
+pod install
+```
 
 ## License
 
-Copyright (c) 2016 Busy, LLC. See the LICENSE file for more info.
+Copyright (c) 2016 Busy, LLC. See [LICENSE](LICENSE).

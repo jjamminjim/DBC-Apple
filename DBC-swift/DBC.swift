@@ -273,7 +273,7 @@ private enum AssertionSupport {
 		}
 
 		let failed = !condition()
-		informIf(failed, "failed \(assertion)(\(intensity)) : \(message())", intensity: informIntensity, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
+		informIf(failed, "failed \(assertion)(\(intensity)): \(message())", intensity: informIntensity, debuggerBreak: dbcBreakOnAssertionsFailures, file: file, line: line)
 	}
 
 	static func informAssertionFailure(_ assertion: String, message: () -> String, intensity: Int, file: StaticString, line: UInt, forceLogging: Bool) {

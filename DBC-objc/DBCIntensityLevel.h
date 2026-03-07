@@ -19,8 +19,8 @@
  "DBC_DebugIntensityLevel" defaults to zero. If a higher intensity level is required,
  it should be changed to the higher level in the debugger at runtime.
  
- Setting "DBC_DebugIntensityLevel to a value less than zero effectively turns intensity-gated messaging off
- for these calls
+ Setting "DBC_DebugIntensityLevel" to a value less than zero effectively turns intensity-gated messaging off
+ for these calls.
  */
 
 @import Foundation;

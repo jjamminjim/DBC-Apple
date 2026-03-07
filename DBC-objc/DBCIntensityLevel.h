@@ -11,7 +11,7 @@
 #define __DBCINTENSITYLEVEL__
 
 /**
- Set "DBC_DebugIntensityLevel" to some value to execute intense intensity-gated messaging code.
+ Set "DBC_DebugIntensityLevel" to some value to execute intensity-gated messaging.
  Allows you to enter intensity-gated messaging code at some level greater than zero.
  When you back off the intensity level, you can leave the code in place without
  execution until that intensity level is required again.

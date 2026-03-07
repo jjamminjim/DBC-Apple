@@ -106,6 +106,24 @@ class RequiredOptionalTests: XCTestCase {
 		}
 	}
 
+	func testRequireUsesRequireAssertionPathWhenIntensityIsNegative() {
+		let nilString: String? = nil
+		dbcIntensityLevel = -1
+
+		expectRequire("Required optional is nil. In testRequireUsesRequireAssertionPathWhenIntensityIsNegative().") {
+			_ = nilString.require()
+		}
+	}
+
+	func testRequireCastUsesRequireAssertionPathWhenIntensityIsNegative() {
+		let ints: [Int]? = [1, 2, 3]
+		dbcIntensityLevel = -1
+
+		expectRequire("Failed to cast value of type Optional<Array<Int>> to Array<String>. In testRequireCastUsesRequireAssertionPathWhenIntensityIsNegative().") {
+			let _: [String] = ints.requireCast()
+		}
+	}
+
 	func testRequiredThrowsTypedDBCOptionalError() {
 		let nilString: String? = nil
 

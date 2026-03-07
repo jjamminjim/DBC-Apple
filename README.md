@@ -37,7 +37,7 @@ pod "DBC"
 ## Highlights
 
 - `require` uses preconditions for failures that must stop execution.
-- `check` and `ensure` use Swift assertions in debug builds and log through `inform` in release builds when active for the current `dbcIntensityLevel`.
+- `check` and `ensure` use Swift assertions in debug builds when active for the current `dbcIntensityLevel`, and log through `inform` in release builds. When debug assertions are suppressed by the intensity gate, they emit fallback `inform` logs instead of trapping.
 - `inform` and `informIf` are active in all build configurations when `intensity <= dbcIntensityLevel`.
 - Swift logging is swappable through `dbcLogger`; the default logger delegates to `Swift.debugPrint`.
 - Throwing optional helpers such as `required()`, `requiredCast()`, `checked()`, and `checkedCast()` now throw `DBCOptionalError`.

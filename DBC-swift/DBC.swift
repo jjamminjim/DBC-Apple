@@ -191,11 +191,11 @@ public func checkFailure(_ message: @autoclosure () -> String, intensity: Int = 
 	AssertionSupport.performDebugAssertionFailure("check", message: message, intensity: intensity, file: file, line: line, debugAssertFailure: Assertions.assertionFailure)
 }
 
-/// Set to 'true' to break in the debugger when assertions fail yet are disabled due to intensity level.
+/// Set to `true` to break in the debugger when assertion failures are reported through fallback `inform` logging.
 ///
-/// DBC assertions that fail their condition but are silenced due to intensity level will still print the
-/// failure to the debug console. When `dbcBreakOnAssertionsFailures` is `true` these conditions will also
-/// break in the debugger.
+/// This applies both when debug assertions are silenced by the intensity gate and when `check`/`ensure`
+/// fall back to `inform` logging in release builds. When `dbcBreakOnAssertionsFailures` is `true`
+/// these reported failures will also break in the debugger.
 ///
 /// Default is `false`
 public var dbcBreakOnAssertionsFailures: Bool {

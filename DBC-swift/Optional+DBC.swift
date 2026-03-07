@@ -281,7 +281,7 @@ private extension Optional {
 	// override returns for testing, hand back an unreachable placeholder so the caller
 	// can continue unwinding through the test harness.
 	func failRequire<ReturnType>(_ message: @autoclosure () -> String, file: StaticString, line: UInt) -> ReturnType {
-		DBC.require(false, message(), file: file, line: line)
+		DBC.require(false, message(), intensity: Int.min, file: file, line: line)
 		return unsafeBitCast(Optional<ReturnType>.none as ReturnType?, to: ReturnType.self)
 	}
 
